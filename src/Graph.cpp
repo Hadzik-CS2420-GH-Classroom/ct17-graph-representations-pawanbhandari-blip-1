@@ -35,7 +35,7 @@ void Graph::add_vertex(const std::string& vertex) {
     // TODO: insert vertex into adj_list_ if not already present
     if (adj_list_.find(vertex) == adj_list_.end()) {
         adj_list_[vertex] = {};  // create an empty neighbor list
-	}
+    }
 }
 
 // ---------------------------------------------------------------------------
@@ -51,10 +51,14 @@ void Graph::add_vertex(const std::string& vertex) {
 //
 void Graph::add_edge(const std::string& from, const std::string& to) {
     // TODO: ensure both vertices exist, then add each to the other's neighbor list
-	add_vertex(from);
-	add_vertex(to);
-	adj_list_[from].push_back(to);
-	adj_list_[to].push_back(from);
+    add_vertex(from);
+    add_vertex(to);
+
+    // (optional safety: prevent duplicate edges)
+    if (!has_edge(from, to)) {
+        adj_list_[from].push_back(to);
+        adj_list_[to].push_back(from);
+    }
 }
 
 // =============================================================================
@@ -63,40 +67,41 @@ void Graph::add_edge(const std::string& from, const std::string& to) {
 
 bool Graph::has_vertex(const std::string& vertex) const {
     // TODO: check if vertex exists as a key in adj_list_
-	return adj_list_.find(vertex) != adj_list_.end();
-  
+    return adj_list_.find(vertex) != adj_list_.end();
+
 }
 
 bool Graph::has_edge(const std::string& from, const std::string& to) const {
     // TODO: check if 'to' appears in from's neighbor list
-	auto it = adj_list_.find(from);
-    if (it != adj_list_.end()) 
+    auto it = adj_list_.find(from);
+    if (it == adj_list_.end())   // ✅ FIXED
         return false;
-	const auto& neighbors = it->second;
-	return std::find(neighbors.begin(), neighbors.end(), to) != neighbors.end();
-    
+
+    const auto& neighbors = it->second;
+    return std::find(neighbors.begin(), neighbors.end(), to) != neighbors.end();
+
 }
 
 int Graph::vertex_count() const {
     // TODO: return number of keys in adj_list_
-	return static_cast<int>(adj_list_.size());
+    return static_cast<int>(adj_list_.size());
 }
 
 int Graph::edge_count() const {
-	int total = 0;
+    int total = 0;
     for (const auto& [vertex, neighbors] : adj_list_) {
         total += neighbors.size();
-	}
-	return total / 2;  // divide by 2 for undirected graph
+    }
+    return total / 2;  // divide by 2 for undirected graph
 }
 
 std::vector<std::string> Graph::neighbors(const std::string& vertex) const {
     // TODO: return the neighbor list for vertex (empty vector if not found)
-	auto it = adj_list_.find(vertex);
-    if (it != adj_list_.end()) {
-		return {};  // vertex not found, return empty list
+    auto it = adj_list_.find(vertex);
+    if (it == adj_list_.end()) {   // ✅ FIXED
+        return {};  // vertex not found, return empty list
     }
-	return it->second;  // return the neighbor list
+    return it->second;  // return the neighbor list
 }
 
 // =============================================================================
@@ -123,12 +128,12 @@ std::vector<std::string> Graph::bfs(const std::string& start) const {
     // TODO: implement BFS using a queue and visited set
     if (!has_vertex(start)) {
         return result;  // start vertex not found, return empty result
-	}
-	std::queue<std::string> q;
-	std::unordered_set<std::string> visited;
+    }
+    std::queue<std::string> q;
+    std::unordered_set<std::string> visited;
 
-	q.push(start);
-	visited.insert(start);
+    q.push(start);
+    visited.insert(start);
 
     while (!q.empty()) {
         std::string current = q.front();
@@ -141,7 +146,7 @@ std::vector<std::string> Graph::bfs(const std::string& start) const {
             }
         }
     }
-	return result;
+    return result;
 }
 
 // =============================================================================
@@ -165,29 +170,29 @@ std::vector<std::string> Graph::bfs(const std::string& start) const {
 std::vector<std::string> Graph::dfs(const std::string& start) const {
     std::vector<std::string> result;
     // TODO: implement DFS using a stack and visited set
-    if (!has_vertex(start)) 
-		return result;  // start vertex not found, return empty result
-	std::stack<std::string> s;
-	std::unordered_set<std::string> visited;
-	s.push(start);
+    if (!has_vertex(start))
+        return result;  // start vertex not found, return empty result
+    std::stack<std::string> s;
+    std::unordered_set<std::string> visited;
+    s.push(start);
 
 
     while (!s.empty()) {
         std::string current = s.top();
         s.pop();
         if (visited.find(current) != visited.end()) continue;
-            visited.insert(current);
-            result.push_back(current);
-            
-			const auto& nbrs = neighbors(current);
-            for (auto it = nbrs.rbegin(); it != nbrs.rend(); ++it) {
-                
-                if (visited.find(*it) == visited.end()) {
-                    s.push(*it);
-                }
-			}
-        
-	}
+        visited.insert(current);
+        result.push_back(current);
+
+        const auto& nbrs = neighbors(current);
+        for (auto it = nbrs.rbegin(); it != nbrs.rend(); ++it) {
+
+            if (visited.find(*it) == visited.end()) {
+                s.push(*it);
+            }
+        }
+
+    }
 
     return result;
 }
